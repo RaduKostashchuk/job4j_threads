@@ -25,25 +25,27 @@ public class Wget implements Runnable {
                 FileOutputStream out = new FileOutputStream(file)) {
             byte[] buffer = new byte[1024];
             int bytesRead;
-            long start;
+            long start = System.nanoTime() / TO_MICROS;
             long end;
             long diff;
-            while (true) {
-                start = System.nanoTime() / TO_MICROS;
-                bytesRead = in.read(buffer, 0, 1024);
+            while ((bytesRead = in.read(buffer, 0, 1024)) != -1) {
                 end = System.nanoTime() / TO_MICROS;
-                if (bytesRead != -1) {
-                    out.write(buffer, 0, bytesRead);
-                } else {
-                    break;
-                }
                 diff = KBS_TO_MICROS / speed - (end - start);
                 if (diff > 0) {
                     Thread.sleep(diff / TO_MILLIS, (int) (diff % TO_MILLIS));
                 }
+                out.write(buffer, 0, bytesRead);
+                start = System.nanoTime() / TO_MICROS;
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void validate(String[] args) {
+        int speed = Integer.parseInt(args[1]);
+        if (args.length != 3 || speed == 0) {
+            throw new IllegalArgumentException();
         }
     }
 
@@ -51,9 +53,7 @@ public class Wget implements Runnable {
         String url = args[0];
         int speed = Integer.parseInt(args[1]);
         String file = args[2];
-        if (args.length != 3 || speed == 0) {
-            throw new IllegalArgumentException();
-        }
+        validate(args);
         Thread wget = new Thread(new Wget(url, speed, file));
         wget.start();
         wget.join();
