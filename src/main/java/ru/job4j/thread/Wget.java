@@ -6,9 +6,6 @@ import java.io.IOException;
 import java.net.URL;
 
 public class Wget implements Runnable {
-    private static final int TO_MILLIS = 1000;
-    private static final int TO_MICROS = 1000;
-    private static final int KBS_TO_MICROS = 1000000;
     private final String url;
     private final int speed;
     private final String file;
@@ -25,17 +22,20 @@ public class Wget implements Runnable {
                 FileOutputStream out = new FileOutputStream(file)) {
             byte[] buffer = new byte[1024];
             int bytesRead;
-            long start = System.nanoTime() / TO_MICROS;
-            long end;
-            long diff;
+            int sumBytesRead = 0;
+            long start = System.currentTimeMillis();
+            long interval;
             while ((bytesRead = in.read(buffer, 0, 1024)) != -1) {
-                end = System.nanoTime() / TO_MICROS;
-                diff = KBS_TO_MICROS / speed - (end - start);
-                if (diff > 0) {
-                    Thread.sleep(diff / TO_MILLIS, (int) (diff % TO_MILLIS));
+                sumBytesRead += bytesRead;
+                if (sumBytesRead > speed) {
+                    interval  = (System.currentTimeMillis() - start);
+                    if (interval < 1000) {
+                        Thread.sleep(1000 - interval);
+                    }
+                    sumBytesRead = 0;
+                    start = System.currentTimeMillis();
                 }
                 out.write(buffer, 0, bytesRead);
-                start = System.nanoTime() / TO_MICROS;
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -52,10 +52,15 @@ public class Wget implements Runnable {
     public static void main(String[] args) throws InterruptedException {
         String url = args[0];
         int speed = Integer.parseInt(args[1]);
+        long start;
+        long end;
         String file = args[2];
         validate(args);
         Thread wget = new Thread(new Wget(url, speed, file));
+        start = System.currentTimeMillis();
         wget.start();
         wget.join();
+        end = System.currentTimeMillis();
+        System.out.println("File load time: " + (end - start) / 1000);
     }
 }
