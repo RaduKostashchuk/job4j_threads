@@ -3,21 +3,24 @@ package ru.job4j.concurrent.userstore;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 @ThreadSafe
 public final class UserStore {
     @GuardedBy("this")
-    private final Store store = new MemStore();
+    private final Map<Integer, User> store = new ConcurrentHashMap<>();
 
     public synchronized boolean add(User user) {
-        return user.getId() >= 0 && user.getAmount() >= 0 && store.add(user);
+        return store.putIfAbsent(user.getId(), user) == null;
     }
 
     public synchronized boolean delete(User user) {
-        return store.delete(user);
+        return store.remove(user.getId(), user);
     }
 
     public synchronized boolean update(User user) {
-        return user.getAmount() >= 0 && store.update(user);
+        return store.replace(user.getId(), user) != null;
     }
 
     public synchronized boolean transfer(int fromId, int toId, int amount) {
@@ -28,8 +31,8 @@ public final class UserStore {
             int fromAmount = fromUser.getAmount();
             int toAmount = toUser.getAmount();
             if (amount <= fromAmount) {
-                store.update(new User(fromUser.getId(), fromAmount - amount));
-                store.update(new User(toUser.getId(), toAmount + amount));
+                fromUser.setAmount(fromAmount - amount);
+                toUser.setAmount(toAmount + amount);
                 result = true;
             }
         }
