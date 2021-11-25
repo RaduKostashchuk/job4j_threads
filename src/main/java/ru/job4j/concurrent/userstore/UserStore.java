@@ -9,7 +9,7 @@ public final class UserStore {
     private final Store store = new MemStore();
 
     public synchronized boolean add(User user) {
-        return user.getId() >= 0 && store.add(user);
+        return user.getId() >= 0 && user.getAmount() >= 0 && store.add(user);
     }
 
     public synchronized boolean delete(User user) {
@@ -17,26 +17,19 @@ public final class UserStore {
     }
 
     public synchronized boolean update(User user) {
-        boolean result = false;
-        User toUpdate = store.get(user.getId());
-        int amountToSet = user.getAmount();
-        if (!toUpdate.equals(User.NULLUSER) && amountToSet >= 0) {
-            toUpdate.setAmount(amountToSet);
-            result = true;
-        }
-        return result;
+        return user.getAmount() >= 0 && store.update(user);
     }
 
     public synchronized boolean transfer(int fromId, int toId, int amount) {
         boolean result = false;
         User toUser = store.get(toId);
         User fromUser = store.get(fromId);
-        if (amount > 0 && !toUser.equals(User.NULLUSER) && !fromUser.equals(User.NULLUSER)) {
+        if (amount > 0 && toUser != null && fromUser != null) {
             int fromAmount = fromUser.getAmount();
             int toAmount = toUser.getAmount();
             if (amount <= fromAmount) {
-                fromUser.setAmount(fromAmount - amount);
-                toUser.setAmount(toAmount + amount);
+                store.update(new User(fromUser.getId(), fromAmount - amount));
+                store.update(new User(toUser.getId(), toAmount + amount));
                 result = true;
             }
         }
@@ -44,7 +37,6 @@ public final class UserStore {
     }
 
     public synchronized User get(int id) {
-        User result = store.get(id);
-        return new User(result.getId(), result.getAmount());
+        return store.get(id);
     }
 }

@@ -3,9 +3,8 @@ package ru.job4j.concurrent.userstore;
 import java.util.Objects;
 
 public class User {
-    public static final User NULLUSER = new User(-1, 0);
-    private int id;
-    private int amount;
+    private final int id;
+    private final int amount;
 
     public User(int id, int amount) {
         this.id = id;
@@ -16,16 +15,8 @@ public class User {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public int getAmount() {
         return amount;
-    }
-
-    public void setAmount(int amount) {
-        this.amount = amount;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package ru.job4j.concurrent.userstore;
 
+import org.hamcrest.core.IsNull;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -21,7 +22,7 @@ public class UserStoreTest {
         User user = new User(1, 100);
         store.add(user);
         store.delete(user);
-        assertThat(store.get(1), is(User.NULLUSER));
+        assertThat(store.get(1), IsNull.nullValue());
     }
 
     @Test

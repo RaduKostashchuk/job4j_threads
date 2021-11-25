@@ -1,30 +1,28 @@
 package ru.job4j.concurrent.userstore;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MemStore implements Store {
-    private final List<User> store = new CopyOnWriteArrayList<>();
+    private final Map<Integer, User> store = new ConcurrentHashMap<>();
 
     @Override
     public boolean add(User user) {
-        return store.add(user);
+        return store.putIfAbsent(user.getId(), user) == null;
     }
 
     @Override
-    public User get(int id) {
-        User result = User.NULLUSER;
-        for (User el : store) {
-            if (el.getId() == id) {
-                result = el;
-                break;
-            }
-        }
-        return result;
+    public boolean update(User user) {
+        return store.replace(user.getId(), user) != null;
     }
 
     @Override
     public boolean delete(User user) {
-        return store.remove(user);
+        return store.remove(user.getId(), user);
+    }
+
+    @Override
+    public User get(int id) {
+        return store.get(id);
     }
 }
