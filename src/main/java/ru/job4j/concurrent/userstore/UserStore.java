@@ -27,7 +27,7 @@ public final class UserStore {
         boolean result = false;
         User toUser = store.get(toId);
         User fromUser = store.get(fromId);
-        if (amount > 0 && toUser != null && fromUser != null) {
+        if (toUser != null && fromUser != null) {
             int fromAmount = fromUser.getAmount();
             int toAmount = toUser.getAmount();
             if (amount <= fromAmount) {
