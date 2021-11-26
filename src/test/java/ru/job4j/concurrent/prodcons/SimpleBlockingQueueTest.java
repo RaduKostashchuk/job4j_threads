@@ -1,0 +1,71 @@
+package ru.job4j.concurrent.prodcons;
+
+import org.junit.Test;
+
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+
+public class SimpleBlockingQueueTest {
+
+    private static class Producer extends Thread {
+        private final SimpleBlockingQueue<Integer> queue;
+
+        public Producer(SimpleBlockingQueue<Integer> queue) {
+            this.queue = queue;
+        }
+
+        @Override
+        public void run() {
+            queue.offer(10);
+        }
+    }
+
+    private static class Consumer extends Thread {
+        private final SimpleBlockingQueue<Integer> queue;
+
+        public Consumer(SimpleBlockingQueue<Integer> queue) {
+            this.queue = queue;
+        }
+
+        @Override
+        public void run() {
+            queue.poll();
+        }
+    }
+
+    @Test
+    public void whenStartConsumerThenStateIsWaiting() throws InterruptedException {
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>();
+        Thread consumer = new Consumer(queue);
+        consumer.start();
+        Thread.sleep(100);
+        assertThat(consumer.getState(), is(Thread.State.WAITING));
+    }
+
+    @Test
+    public void whenStartTwoProducersThenSecondStateIsWaiting() throws InterruptedException {
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>();
+        Thread producer1 = new Producer(queue);
+        Thread producer2 = new Producer(queue);
+        producer1.start();
+        Thread.sleep(100);
+        producer2.start();
+        Thread.sleep(100);
+        assertThat(producer1.getState(), is(Thread.State.TERMINATED));
+        assertThat(producer2.getState(), is(Thread.State.WAITING));
+    }
+
+    @Test
+    public void whenStartProducerBeforeConsumerThenBothStateIsTerminated() throws InterruptedException {
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>();
+        Thread producer = new Producer(queue);
+        Thread consumer = new Consumer(queue);
+        producer.start();
+        Thread.sleep(100);
+        consumer.start();
+        Thread.sleep(100);
+        assertThat(producer.getState(), is(Thread.State.TERMINATED));
+        assertThat(consumer.getState(), is(Thread.State.TERMINATED));
+    }
+}
