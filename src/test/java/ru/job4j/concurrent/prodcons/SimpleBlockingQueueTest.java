@@ -1,9 +1,6 @@
 package ru.job4j.concurrent.prodcons;
 
-import com.sun.source.doctree.IndexTree;
 import org.junit.Test;
-
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -59,7 +56,7 @@ public class SimpleBlockingQueueTest {
         Thread producer1 = new Producer(queue);
         Thread producer2 = new Producer(queue);
         producer1.start();
-        Thread.sleep(100);
+        producer1.join();
         producer2.start();
         Thread.sleep(100);
         assertThat(producer1.getState(), is(Thread.State.TERMINATED));
@@ -72,9 +69,9 @@ public class SimpleBlockingQueueTest {
         Thread producer = new Producer(queue);
         Thread consumer = new Consumer(queue);
         producer.start();
-        Thread.sleep(100);
+        producer.join();
         consumer.start();
-        Thread.sleep(100);
+        consumer.join();
         assertThat(producer.getState(), is(Thread.State.TERMINATED));
         assertThat(consumer.getState(), is(Thread.State.TERMINATED));
     }
