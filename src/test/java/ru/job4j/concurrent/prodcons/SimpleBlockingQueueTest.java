@@ -1,5 +1,6 @@
 package ru.job4j.concurrent.prodcons;
 
+import com.sun.source.doctree.IndexTree;
 import org.junit.Test;
 
 
@@ -17,7 +18,11 @@ public class SimpleBlockingQueueTest {
 
         @Override
         public void run() {
-            queue.offer(10);
+            try {
+                queue.offer(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -30,22 +35,27 @@ public class SimpleBlockingQueueTest {
 
         @Override
         public void run() {
-            queue.poll();
+            try {
+                queue.poll();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Test
     public void whenStartConsumerThenStateIsWaiting() throws InterruptedException {
-        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>();
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(1);
         Thread consumer = new Consumer(queue);
         consumer.start();
         Thread.sleep(100);
         assertThat(consumer.getState(), is(Thread.State.WAITING));
+        assertThat(queue.size(), is(0));
     }
 
     @Test
     public void whenStartTwoProducersThenSecondStateIsWaiting() throws InterruptedException {
-        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>();
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(1);
         Thread producer1 = new Producer(queue);
         Thread producer2 = new Producer(queue);
         producer1.start();
@@ -58,7 +68,7 @@ public class SimpleBlockingQueueTest {
 
     @Test
     public void whenStartProducerBeforeConsumerThenBothStateIsTerminated() throws InterruptedException {
-        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>();
+        SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(1);
         Thread producer = new Producer(queue);
         Thread consumer = new Consumer(queue);
         producer.start();
