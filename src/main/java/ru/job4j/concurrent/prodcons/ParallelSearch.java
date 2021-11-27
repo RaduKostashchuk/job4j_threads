@@ -1,22 +1,20 @@
 package ru.job4j.concurrent.prodcons;
 
-import javax.swing.text.TabExpander;
-
 public class ParallelSearch {
     public static void main(String[] args) throws InterruptedException {
         SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(3);
         final Thread consumer = new Thread(
                 () -> {
-                    while (true) {
+                    while (!Thread.currentThread().isInterrupted()) {
                         try {
                             System.out.println(queue.poll());
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            System.out.println("Exiting.");
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
         );
-        consumer.setDaemon(true);
         consumer.start();
         new Thread(
                 () -> {
@@ -28,6 +26,7 @@ public class ParallelSearch {
                             e.printStackTrace();
                         }
                     }
+                    consumer.interrupt();
                 }
 
         ).start();
