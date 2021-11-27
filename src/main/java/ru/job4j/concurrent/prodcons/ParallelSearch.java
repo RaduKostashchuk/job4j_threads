@@ -5,36 +5,31 @@ import javax.swing.text.TabExpander;
 public class ParallelSearch {
     public static void main(String[] args) throws InterruptedException {
         SimpleBlockingQueue<Integer> queue = new SimpleBlockingQueue<>(3);
-        final Thread consumer;
-        final Thread producer;
-        producer = new Thread(
+        final Thread consumer = new Thread(
                 () -> {
-                    for (int i = 0; i < 4; i++) {
+                    while (true) {
                         try {
-                            queue.offer(i);
-                            Thread.sleep(500);
+                            System.out.println(queue.poll());
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
                 }
         );
-        consumer = new Thread(
+        consumer.setDaemon(true);
+        consumer.start();
+        new Thread(
                 () -> {
-                    try {
-                        while (true) {
-                            System.out.println(queue.poll());
+                    for (int index = 0; index != 3; index++) {
+                        try {
+                            queue.offer(index);
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    } catch (InterruptedException e) {
-                        System.out.println("Consumer exiting.");
                     }
                 }
-        );
-        producer.start();
-        consumer.start();
-        while (!producer.getState().equals(Thread.State.TERMINATED)) {
-            Thread.sleep(500);
-        }
-        consumer.interrupt();
+
+        ).start();
     }
 }
