@@ -11,34 +11,27 @@ public class ThreadPool {
     public ThreadPool(int size) {
          this.tasks = new SimpleBlockingQueue<>(size);
          for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
-             Thread thread = new InnerThread();
+             Thread thread = new Thread(
+                     () -> {
+                         while (!Thread.currentThread().isInterrupted()) {
+                             try {
+                                 Runnable task = tasks.poll();
+                                 System.out.print(Thread.currentThread().getName() + " ");
+                                 task.run();
+                             } catch (InterruptedException e) {
+                                 System.out.println("Exiting.");
+                                 Thread.currentThread().interrupt();
+                             }
+                         }
+                     }
+             );
              thread.start();
              threads.add(thread);
         }
     }
 
-    public class InnerThread extends Thread {
-        @Override
-        public void run() {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    Runnable task = tasks.poll();
-                    System.out.print(Thread.currentThread().getName() + " ");
-                    task.run();
-                } catch (InterruptedException e) {
-                    System.out.println("Exiting.");
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-    }
-
-    public void work(Runnable job) {
-        try {
+    public void work(Runnable job) throws InterruptedException {
             tasks.offer(job);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public void shutdown() {
@@ -57,6 +50,7 @@ public class ThreadPool {
         pool.work(task2);
         pool.work(task3);
         pool.work(task4);
+        pool.work(task1);
         Thread.sleep(500);
         pool.shutdown();
     }
