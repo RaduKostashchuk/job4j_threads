@@ -6,9 +6,9 @@ import java.util.function.Predicate;
 
 public class Search {
 
-    public static <T> Set<Integer> search(T[] input, Predicate<T> predicate) {
+    public static <T> Set<Integer> search(T[] input, int from, int to, Predicate<T> predicate) {
         Set<Integer> result = new HashSet<>();
-        for (int i = 0; i < input.length; i++) {
+        for (int i = from; i <= to; i++) {
             if (predicate.test(input[i])) {
                 result.add(i);
             }
