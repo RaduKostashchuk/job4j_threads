@@ -41,26 +41,4 @@ public class RolColSumTest {
         assertThat(result[2].getRowSum(), is(24));
     }
 
-    @Test
-    public void whenCompareSyncAndAsync() {
-        int dim = 2000;
-        int[][] matrix = new int[dim][dim];
-        Random rd = new Random();
-        for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
-                matrix[i][j] = rd.nextInt();
-            }
-        }
-        long time1 = System.nanoTime();
-        RolColSum.asyncSum(matrix);
-        long time2 = System.nanoTime();
-        RolColSum.sum(matrix);
-        long time3 = System.nanoTime();
-        long timeAsync = time2 - time1;
-        long timeSync = time3 - time2;
-        System.out.println("Time async: " + timeAsync);
-        System.out.println("Time sync: " + timeSync);
-        assertThat(timeAsync < timeSync, is(true));
-
-    }
 }

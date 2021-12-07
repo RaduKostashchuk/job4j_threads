@@ -1,6 +1,6 @@
 package ru.job4j.concurrent;
 
-public class CountBarrirerStart {
+public class CountBarrierStart {
     public static void main(String[] args) {
         CountBarrier cb = new CountBarrier(3);
         Thread thr1 = new Thread(
